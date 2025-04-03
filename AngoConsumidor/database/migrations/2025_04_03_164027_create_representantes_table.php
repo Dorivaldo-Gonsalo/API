@@ -16,6 +16,7 @@ class CreateRepresentantesTable extends Migration
             $table->string('sector', 100);
             $table->string('email', 100)->unique();
             $table->string('senha');
+            $table->rememberToken();
             $table->string('caminho_imagem', 255)->nullable();
             $table->timestamps();
         });
