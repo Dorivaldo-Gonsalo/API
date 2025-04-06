@@ -30,20 +30,32 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        // Verifica se já existem 3 usuários
+        $userCount = User::count();
+
+        if ($userCount >= 3) {
+            // Redireciona de volta com uma mensagem de erro
+            return redirect()->back()->withErrors(['message' => 'Número máximo de usuários atingido.']);
+        }
+
+        // Validação dos dados
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
+        // Criação do usuário
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
 
+        // Dispara o evento registrado
         event(new Registered($user));
 
+        // Realiza o login do usuário
         Auth::login($user);
 
         return redirect(RouteServiceProvider::HOME);
