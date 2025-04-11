@@ -5,6 +5,13 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Usuario;
 use Illuminate\Http\Request;
+use App\Providers\RouteServiceProvider;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules;
+use Illuminate\View\View;
 
 class UsuarioController extends Controller
 {
@@ -28,8 +35,14 @@ class UsuarioController extends Controller
             'apelido' => $request->apelido,
             'bi' => $request->bi,
             'email' => $request->email,
-            'senha' => bcrypt($request->senha),
-        ]);
+            'senha' => Hash::make($request->password),
+        ])->givePermissionTo('usuario');
+
+        // Dispara o evento registrado
+        event(new Registered($usuario));
+
+        // Realiza o login do usuario
+        Auth::login($usuario);
 
         return response()->json($usuario, 201);
     }
@@ -49,7 +62,7 @@ class UsuarioController extends Controller
             'apelido' => 'nullable|string|max:50',
             'bi' => 'sometimes|required|unique:usuarios,bi,' . $usuario->id,
             'email' => 'sometimes|required|email|unique:usuarios,email,' . $usuario->id,
-            'senha' => 'sometimes|required|string|min:6',
+            'senha' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
         $usuario->update($request->all());

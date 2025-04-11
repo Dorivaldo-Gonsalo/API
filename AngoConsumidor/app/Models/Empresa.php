@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Permission\Traits\HasRoles;
+use Laravel\Sanctum\HasApiTokens;
 
 class Empresa extends Model
 {
-    use HasFactory;
+    use HasApiTokens, HasFactory, HasRoles;
 
     protected $fillable = [
         'nome',

@@ -1,9 +1,10 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-AngoConsumidor
-
-        </h2>
+        @can('usuario')
+       <h2> Dados do usuário</h2>
+    @elsecan('admin')
+       <h2> Somente o administrador pode isso</h2>
+    @endcan
     </x-slot>
 
 

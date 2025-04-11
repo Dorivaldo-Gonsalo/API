@@ -5,6 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Empresa;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rules;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Auth\Events\Registered;
+
 
 class EmpresaController extends Controller
 {
@@ -19,7 +24,7 @@ class EmpresaController extends Controller
             'nome' => 'required|string|max:50',
             'endereco' => 'nullable|string|max:100',
             'email' => 'required|string|email|max:255|unique:empresas',
-            'senha' => 'required|string|min:6',
+            'senha' => ['required', 'confirmed', Rules\Password::defaults()],
             'id_representante' => 'required|exists:representantes,id',
             'telefone' => 'nullable|string|max:15',
             'ano_util' => 'nullable|integer',
@@ -29,11 +34,18 @@ class EmpresaController extends Controller
             'nome' => $request->nome,
             'endereco' => $request->endereco,
             'email' => $request->email,
-            'senha' => bcrypt($request->senha),
+            'senha' => Hash::make($request->password),
             'id_representante' => $request->id_representante,
             'telefone' => $request->telefone,
             'ano_util' => $request->ano_util,
-        ]);
+
+        ])->givePermissionTo('empresa');
+
+        // Dispara o evento registrado
+        event(new Registered($empresa));
+
+        // Realiza o login do empresa
+        Auth::login($empresa);
 
         return response()->json($empresa, 201);
     }

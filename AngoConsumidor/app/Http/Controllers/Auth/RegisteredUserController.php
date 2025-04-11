@@ -50,12 +50,12 @@ class RegisteredUserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-        ]);
+        ])->givePermissionTo('admin');
 
         // Dispara o evento registrado
         event(new Registered($user));
 
-        // Realiza o login do usuário
+        // Realiza o login do admin
         Auth::login($user);
 
         return redirect(RouteServiceProvider::HOME);

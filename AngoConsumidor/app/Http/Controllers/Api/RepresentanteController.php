@@ -5,6 +5,10 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Representante;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rules;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Auth\Events\Registered;
 
 class RepresentanteController extends Controller
 {
@@ -20,7 +24,7 @@ class RepresentanteController extends Controller
             'apelido' => 'nullable|string|max:50',
             'bi' => 'required|unique:representantes',
             'email' => 'required|email|unique:representantes',
-            'senha' => 'required|string|min:6',
+            'senha'=> ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
         $representante = Representante::create([
@@ -28,8 +32,15 @@ class RepresentanteController extends Controller
             'apelido' => $request->apelido,
             'bi' => $request->bi,
             'email' => $request->email,
-            'senha' => bcrypt($request->senha),
-        ]);
+            'senha'=> Hash::make($request->password),
+
+        ])->givePermissionTo('representante');
+
+        // Dispara o evento registrado
+        event(new Registered($representante));
+
+        // Realiza o login do representante
+        Auth::login($representante);
 
         return response()->json($representante, 201);
     }
